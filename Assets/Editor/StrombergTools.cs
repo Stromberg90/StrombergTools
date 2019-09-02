@@ -7,7 +7,8 @@ using UnityEditor;
 namespace StrombergTools {
     public enum Command {
         None,
-        ToggleHide
+        ToggleHide,
+        GroupSelected
     }
 
     [System.Serializable]
@@ -91,13 +92,25 @@ namespace StrombergTools {
             if (Event.current.type == EventType.KeyDown) {
                 if (Event.current.modifiers == EventModifiers.Shift) {
                     if (Event.current.keyCode == KeyCode.H) {
-                        if (Selection.activeGameObject) {
+                        Undo.RecordObjects(Selection.gameObjects, "Toggle Active");
+                        foreach (var activeGameObject in Selection.gameObjects) {
                             Event.current.Use();
-                            if (Selection.activeGameObject.activeSelf) {
-                                Selection.activeGameObject.SetActive(false);
+                            if (activeGameObject.activeSelf) {
+                                activeGameObject.SetActive(false);
                             }
                             else {
-                                Selection.activeGameObject.SetActive(true);
+                                activeGameObject.SetActive(true);
+                            }
+                        }
+                    }
+                }
+                else if (Event.current.modifiers == EventModifiers.Control) {
+                    if (Event.current.keyCode == KeyCode.G) {
+                        if (Selection.gameObjects.Length > 0) {
+                            var game_object = new GameObject();
+                            Undo.RegisterCreatedObjectUndo(game_object, "Group Selected");
+                            foreach (var active_game_object in Selection.gameObjects) {
+                                Undo.SetTransformParent(active_game_object.transform, game_object.transform, "Group Selected");
                             }
                         }
                     }
